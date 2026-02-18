@@ -1,0 +1,212 @@
+import { useState } from 'react'
+import { supabase } from '../lib/supabase'
+import { PLANS } from '../lib/plans'
+import { leadSchema, formatWhatsApp, type LeadFormData } from '../lib/validation'
+import TermsModal from './TermsModal'
+import './LeadFormModal.css'
+
+interface LeadFormModalProps {
+    isOpen: boolean
+    onClose: () => void
+    planId: string
+}
+
+export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModalProps) {
+    const plan = PLANS[planId]
+    const [formData, setFormData] = useState({ name: '', whatsapp: '', email: '' })
+    const [acceptedTerms, setAcceptedTerms] = useState(false)
+    const [showTerms, setShowTerms] = useState(false)
+    const [errors, setErrors] = useState<Partial<Record<keyof LeadFormData, string>>>({})
+    const [loading, setLoading] = useState(false)
+    const [submitError, setSubmitError] = useState('')
+
+    if (!isOpen || !plan) return null
+
+    const handleWhatsAppChange = (value: string) => {
+        setFormData((prev) => ({ ...prev, whatsapp: formatWhatsApp(value) }))
+    }
+
+    const isFormValid =
+        formData.name.length >= 3 &&
+        formData.email.includes('@') &&
+        formData.whatsapp.length >= 14 &&
+        acceptedTerms
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setSubmitError('')
+
+        const result = leadSchema.safeParse({ ...formData, acceptedTerms })
+        if (!result.success) {
+            const fieldErrors: typeof errors = {}
+            result.error.issues.forEach((issue) => {
+                const key = issue.path[0] as keyof LeadFormData
+                fieldErrors[key] = issue.message
+            })
+            setErrors(fieldErrors)
+            return
+        }
+
+        setErrors({})
+        setLoading(true)
+
+        try {
+            // Generate UUID client-side to avoid SELECT policy on anon role
+            const leadId = crypto.randomUUID()
+
+            // 1. Salvar lead no Supabase
+            const { error: insertError } = await supabase
+                .from('leads')
+                .insert({
+                    id: leadId,
+                    name: formData.name,
+                    whatsapp: formData.whatsapp,
+                    email: formData.email,
+                    plan_id: planId,
+                    status: 'pending_payment',
+                })
+
+            if (insertError) throw new Error(insertError.message)
+
+            // 2. Chamar Edge Function para criar preferência do MP
+            const { data: checkoutData, error: fnError } = await supabase.functions.invoke(
+                'checkout',
+                {
+                    body: {
+                        lead_id: leadId,
+                        name: formData.name,
+                        email: formData.email,
+                        plan_id: planId,
+                    },
+                }
+            )
+
+            if (fnError) throw new Error(fnError.message)
+
+            if (checkoutData?.init_point) {
+                sessionStorage.setItem('mp_init_point', checkoutData.init_point)
+                window.location.href = checkoutData.init_point
+            } else {
+                throw new Error('URL de pagamento não recebida')
+            }
+        } catch (err) {
+            setSubmitError(
+                err instanceof Error
+                    ? err.message
+                    : 'Erro inesperado. Tente novamente ou fale com nosso suporte.'
+            )
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <>
+            <div className="lead-overlay" onClick={onClose}>
+                <div className="lead-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="lead-modal-header">
+                        <button className="lead-close-btn" onClick={onClose} aria-label="Fechar">
+                            ×
+                        </button>
+                        <span className="plan-badge">{plan.name}</span>
+                        <h2>Preencha seus dados</h2>
+                        <p className="plan-price">
+                            <strong>R$ {plan.price.toFixed(2).replace('.', ',')}</strong>/mês
+                        </p>
+                    </div>
+
+                    <div className="lead-modal-body">
+                        <form onSubmit={handleSubmit} noValidate>
+                            <div className="lead-form-group">
+                                <label htmlFor="lead-name">Nome Completo</label>
+                                <input
+                                    id="lead-name"
+                                    type="text"
+                                    placeholder="Seu nome completo"
+                                    value={formData.name}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({ ...prev, name: e.target.value }))
+                                    }
+                                    className={errors.name ? 'input-error' : ''}
+                                />
+                                {errors.name && <p className="field-error">{errors.name}</p>}
+                            </div>
+
+                            <div className="lead-form-group">
+                                <label htmlFor="lead-whatsapp">WhatsApp</label>
+                                <input
+                                    id="lead-whatsapp"
+                                    type="tel"
+                                    placeholder="(00) 00000-0000"
+                                    value={formData.whatsapp}
+                                    onChange={(e) => handleWhatsAppChange(e.target.value)}
+                                    className={errors.whatsapp ? 'input-error' : ''}
+                                />
+                                {errors.whatsapp && <p className="field-error">{errors.whatsapp}</p>}
+                            </div>
+
+                            <div className="lead-form-group">
+                                <label htmlFor="lead-email">E-mail</label>
+                                <input
+                                    id="lead-email"
+                                    type="email"
+                                    placeholder="seu@email.com"
+                                    value={formData.email}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({ ...prev, email: e.target.value }))
+                                    }
+                                    className={errors.email ? 'input-error' : ''}
+                                />
+                                {errors.email && <p className="field-error">{errors.email}</p>}
+                            </div>
+
+                            <div className="lead-terms-group">
+                                <input
+                                    id="lead-terms"
+                                    type="checkbox"
+                                    checked={acceptedTerms}
+                                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                                />
+                                <label htmlFor="lead-terms">
+                                    Li e concordo com os{' '}
+                                    <button
+                                        type="button"
+                                        className="terms-link"
+                                        onClick={() => setShowTerms(true)}
+                                    >
+                                        Termos de Uso e Políticas de Privacidade
+                                    </button>
+                                    .
+                                </label>
+                            </div>
+
+                            {submitError && (
+                                <p className="field-error" style={{ marginBottom: '1rem', textAlign: 'center' }}>
+                                    {submitError}
+                                </p>
+                            )}
+
+                            <button
+                                type="submit"
+                                className={`lead-submit-btn ${loading ? 'loading' : ''}`}
+                                disabled={!isFormValid || loading}
+                            >
+                                Ir para Pagamento
+                            </button>
+
+                            <p className="lead-secure-note">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                                Checkout seguro via Mercado Pago
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
+        </>
+    )
+}

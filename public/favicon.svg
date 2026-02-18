@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="#0A1929"/>
+  <!-- Ship wheel / steering wheel icon -->
+  <!-- Center hub -->
+  <circle cx="256" cy="256" r="40" fill="#FF6B00"/>
+  <circle cx="256" cy="256" r="20" fill="#0A1929"/>
+  <!-- Outer ring -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#FF6B00" stroke-width="28"/>
+  <!-- Spokes (8 spokes at 45deg intervals) -->
+  <line x1="256" y1="216" x2="256" y2="100" stroke="#FF6B00" stroke-width="22" stroke-linecap="round"/>
+  <line x1="256" y1="296" x2="256" y2="412" stroke="#FF6B00" stroke-width="22" stroke-linecap="round"/>
+  <line x1="216" y1="256" x2="100" y2="256" stroke="#FF6B00" stroke-width="22" stroke-linecap="round"/>
+  <line x1="296" y1="256" x2="412" y2="256" stroke="#FF6B00" stroke-width="22" stroke-linecap="round"/>
+  <line x1="228" y1="228" x2="143" y2="143" stroke="#FF6B00" stroke-width="22" stroke-linecap="round"/>
+  <line x1="284" y1="284" x2="369" y2="369" stroke="#FF6B00" stroke-width="22" stroke-linecap="round"/>
+  <line x1="284" y1="228" x2="369" y2="143" stroke="#FF6B00" stroke-width="22" stroke-linecap="round"/>
+  <line x1="228" y1="284" x2="143" y2="369" stroke="#FF6B00" stroke-width="22" stroke-linecap="round"/>
+</svg>

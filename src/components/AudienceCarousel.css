@@ -1,0 +1,83 @@
+.audience-section {
+    padding-block: var(--spacing-xl);
+    background: var(--color-surface);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.audience-title {
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    margin-bottom: var(--spacing-lg);
+}
+
+.carousel-track-container {
+    white-space: nowrap;
+    position: relative;
+    width: 100%;
+}
+
+.carousel-track {
+    display: inline-flex;
+    gap: var(--spacing-xl);
+    animation: scroll 60s linear infinite;
+    padding-inline: var(--spacing-md);
+}
+
+.carousel-item {
+    flex-shrink: 0;
+}
+
+.audience-tag {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-secondary);
+    opacity: 0.8;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-full);
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.audience-tag:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: scale(1.05);
+    opacity: 1;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+        /* Adjust based on duplication length */
+    }
+}
+
+/* Gradient Masks to fade edges */
+.carousel-track-container::before,
+.carousel-track-container::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.carousel-track-container::before {
+    left: 0;
+    background: linear-gradient(to right, var(--color-surface), transparent);
+}
+
+.carousel-track-container::after {
+    right: 0;
+    background: linear-gradient(to left, var(--color-surface), transparent);
+}

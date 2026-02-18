@@ -1,0 +1,120 @@
+.solution-section {
+    background-color: var(--color-background);
+}
+
+.mb-5 {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.pillars-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+}
+
+@media (min-width: 992px) {
+    .pillars-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.pillar-card {
+    background: var(--color-surface);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+    border-top: 4px solid transparent;
+    transition: transform 0.3s ease;
+}
+
+.pillar-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-xl);
+}
+
+.pillar-card.innovation {
+    border-color: var(--color-primary);
+}
+
+.pillar-card.solution {
+    border-color: var(--color-accent);
+}
+
+.pillar-card.integration {
+    border-color: var(--color-secondary);
+}
+
+.pillar-icon {
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.pillar-icon svg {
+    width: 48px;
+    height: 48px;
+    transition: transform 0.3s ease;
+}
+
+.pillar-card:hover .pillar-icon svg {
+    transform: scale(1.1);
+}
+
+.pillar-card.innovation .pillar-icon {
+    color: var(--color-primary);
+}
+
+.pillar-card.solution .pillar-icon {
+    color: var(--color-accent);
+}
+
+.pillar-card.integration .pillar-icon {
+    color: var(--color-secondary);
+}
+
+.pillar-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.pillar-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-md);
+    background: var(--color-background);
+    color: var(--color-text-muted);
+}
+
+.pillar-card.innovation .pillar-tag {
+    color: var(--color-primary);
+    background: rgba(255, 107, 0, 0.1);
+}
+
+.pillar-card.solution .pillar-tag {
+    color: var(--color-accent);
+    background: rgba(255, 199, 0, 0.1);
+}
+
+.pillar-card.integration .pillar-tag {
+    color: var(--color-secondary);
+    background: rgba(10, 25, 41, 0.08);
+}
+
+.pillar-card p {
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.pillar-card em {
+    font-style: italic;
+    color: var(--color-secondary);
+    font-weight: 500;
+}

@@ -1,0 +1,251 @@
+.howto-section {
+    background-color: var(--color-background);
+}
+
+.howto-steps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3xl);
+}
+
+/* Each step row */
+.howto-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2xl);
+    align-items: center;
+}
+
+@media (min-width: 992px) {
+    .howto-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .howto-row.reverse {
+        direction: rtl;
+    }
+
+    .howto-row.reverse>* {
+        direction: ltr;
+    }
+}
+
+/* Data Side */
+.howto-data {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.step-badge {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--color-primary), #FF8C33);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+}
+
+.howto-step-title {
+    font-size: 1.75rem;
+    color: var(--color-secondary);
+    margin: 0;
+}
+
+.howto-step-description {
+    font-size: 1.05rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.howto-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.howto-checklist li {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 0.95rem;
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+.check-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Mockup Side */
+.howto-mockup-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+/* Phone Device */
+.phone-device {
+    width: 280px;
+    height: 560px;
+    background: #111;
+    border-radius: 40px;
+    padding: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    position: relative;
+    border: 4px solid #333;
+}
+
+.device-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 25px;
+    background: #111;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    z-index: 10;
+}
+
+/* Desktop Device */
+.desktop-device {
+    width: 100%;
+    max-width: 520px;
+    height: 340px;
+    background: #111;
+    border-radius: 12px;
+    padding: 8px;
+    border: 4px solid #333;
+    border-bottom-width: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    position: relative;
+}
+
+.desktop-device::after {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 16px;
+    background: #222;
+    border-radius: 0 0 8px 8px;
+}
+
+.device-screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 28px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.phone-device .device-screen {
+    border-radius: 28px;
+}
+
+.desktop-device .device-screen {
+    border-radius: 6px;
+}
+
+.device-content {
+    text-align: center;
+    color: white;
+    padding: var(--spacing-lg);
+    width: 100%;
+}
+
+.device-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: var(--spacing-sm);
+}
+
+.device-content h4 {
+    color: white;
+    font-size: 1.125rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.device-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    align-items: flex-start;
+    padding: 0 var(--spacing-md);
+}
+
+.device-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    width: 100%;
+    font-size: 0.85rem;
+    backdrop-filter: blur(4px);
+}
+
+.device-item-dot {
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 991px) {
+    .howto-row {
+        text-align: center;
+    }
+
+    .howto-data {
+        align-items: center;
+    }
+
+    .howto-checklist {
+        align-items: center;
+    }
+
+    .phone-device {
+        width: 240px;
+        height: 480px;
+    }
+
+    .desktop-device {
+        max-width: 400px;
+        height: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    .phone-device {
+        width: 220px;
+        height: 440px;
+    }
+
+    .desktop-device {
+        max-width: 320px;
+        height: 220px;
+    }
+
+    .howto-step-title {
+        font-size: 1.4rem;
+    }
+}

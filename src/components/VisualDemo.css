@@ -1,0 +1,232 @@
+.demo-section {
+    background-color: var(--color-surface);
+    overflow: hidden;
+}
+
+.demo-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2xl);
+    align-items: center;
+}
+
+@media (min-width: 992px) {
+    .demo-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Phone Mockup */
+.phone-mockup-wrapper {
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.phone-frame {
+    width: 300px;
+    height: 600px;
+    background: #111;
+    border-radius: 40px;
+    padding: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    position: relative;
+    border: 4px solid #333;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Desktop frame removed - now phone-only section */
+
+.phone-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 25px;
+    background: #111;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    border-radius: 32px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.5s ease;
+}
+
+.screen-content {
+    text-align: center;
+    color: white;
+    padding: var(--spacing-lg);
+}
+
+.screen-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.screen-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: white;
+}
+
+@keyframes jump {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.animate-jump {
+    animation: jump 1s ease-in-out infinite;
+}
+
+.screen-placeholder-text {
+    opacity: 0.8;
+    font-size: 0.875rem;
+}
+
+/* Controls */
+.demo-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.demo-step {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    background: var(--color-background);
+}
+
+.demo-step:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.demo-step.active {
+    background: white;
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    background: var(--color-text-muted);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: background-color 0.3s;
+}
+
+.demo-step.active .step-number {
+    background: var(--color-primary);
+}
+
+.step-content h3 {
+    font-size: 1.125rem;
+    margin-bottom: var(--spacing-xs);
+    color: var(--color-text);
+}
+
+.step-content p {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+    .demo-section {
+        padding: 2rem 0;
+    }
+
+    .demo-grid {
+        gap: var(--spacing-md);
+        padding: 0 1rem;
+    }
+
+    .phone-frame {
+        width: 200px;
+        height: 400px;
+        border-radius: 28px;
+        padding: 8px;
+        border-width: 3px;
+    }
+
+    .phone-notch {
+        width: 80px;
+        height: 18px;
+    }
+
+    .phone-screen {
+        border-radius: 22px;
+    }
+
+    .screen-icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .screen-content h3 {
+        font-size: 0.9rem;
+    }
+
+    .screen-placeholder-text {
+        font-size: 0.75rem;
+    }
+
+    .demo-controls {
+        gap: var(--spacing-sm);
+    }
+
+    .demo-step {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .step-number {
+        width: 26px;
+        height: 26px;
+        font-size: 0.8rem;
+    }
+
+    .step-content h3 {
+        font-size: 0.95rem;
+    }
+
+    .step-content p {
+        font-size: 0.8rem;
+        display: none;
+    }
+}
