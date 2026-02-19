@@ -48,7 +48,7 @@ export default function PricingSection() {
                                 >
                                     ASSINAR BÁSICO
                                 </button>
-                                <p className="setup-fee">Checkout Seguro Mercado Pago</p>
+                                <p className="setup-fee">Acesso grátis ao PRO por 7 dias</p>
                             </div>
                         </div>
 
@@ -86,7 +86,7 @@ export default function PricingSection() {
                                 >
                                     ASSINAR PRO
                                 </button>
-                                <p className="setup-fee">Checkout Seguro Mercado Pago</p>
+                                <p className="setup-fee">Gestão TOTAL do seu negócio</p>
                             </div>
                         </div>
                     </div>
