@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { PLANS } from '../lib/plans'
-import { leadSchema, formatWhatsApp, type LeadFormData } from '../lib/validation'
+import { leadSchema, formatWhatsApp, formatCpfCnpj, type LeadFormData } from '../lib/validation'
 import TermsModal from './TermsModal'
 import './LeadFormModal.css'
 
@@ -13,12 +13,18 @@ interface LeadFormModalProps {
 
 export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModalProps) {
     const plan = PLANS[planId]
-    const [formData, setFormData] = useState({ name: '', whatsapp: '', email: '' })
+    const [formData, setFormData] = useState({ name: '', whatsapp: '', email: '', taxId: '' })
     const [acceptedTerms, setAcceptedTerms] = useState(false)
     const [showTerms, setShowTerms] = useState(false)
     const [errors, setErrors] = useState<Partial<Record<keyof LeadFormData, string>>>({})
     const [loading, setLoading] = useState(false)
     const [submitError, setSubmitError] = useState('')
+    const mountedRef = useRef(true)
+
+    useEffect(() => {
+        mountedRef.current = true
+        return () => { mountedRef.current = false }
+    }, [])
 
     if (!isOpen || !plan) return null
 
@@ -26,10 +32,15 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
         setFormData((prev) => ({ ...prev, whatsapp: formatWhatsApp(value) }))
     }
 
+    const handleTaxIdChange = (value: string) => {
+        setFormData((prev) => ({ ...prev, taxId: formatCpfCnpj(value) }))
+    }
+
     const isFormValid =
         formData.name.length >= 3 &&
         formData.email.includes('@') &&
         formData.whatsapp.length >= 14 &&
+        formData.taxId.length >= 14 &&
         acceptedTerms
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -51,14 +62,13 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
         setLoading(true)
 
         try {
-            // Generate UUID client-side to avoid SELECT policy on anon role
-            const leadId = crypto.randomUUID()
+            const newLeadId = crypto.randomUUID()
 
-            // 1. Salvar lead no Supabase
+            // 1. Save lead to Supabase
             const { error: insertError } = await supabase
                 .from('leads')
                 .insert({
-                    id: leadId,
+                    id: newLeadId,
                     name: formData.name,
                     whatsapp: formData.whatsapp,
                     email: formData.email,
@@ -68,35 +78,36 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
 
             if (insertError) throw new Error(insertError.message)
 
-            // 2. Chamar Edge Function para criar preferência do MP
+            // 2. Call Edge Function to create recurring billing
             const { data: checkoutData, error: fnError } = await supabase.functions.invoke(
                 'checkout',
                 {
                     body: {
-                        lead_id: leadId,
+                        lead_id: newLeadId,
                         name: formData.name,
                         email: formData.email,
+                        whatsapp: formData.whatsapp,
+                        taxId: formData.taxId,
                         plan_id: planId,
                     },
                 }
             )
 
             if (fnError) throw new Error(fnError.message)
+            if (!checkoutData?.init_point) throw new Error('URL de pagamento não recebida.')
 
-            if (checkoutData?.init_point) {
-                sessionStorage.setItem('mp_init_point', checkoutData.init_point)
-                window.location.href = checkoutData.init_point
-            } else {
-                throw new Error('URL de pagamento não recebida')
-            }
+            // 3. Redirect to AbacatePay checkout page
+            window.location.href = checkoutData.init_point
+
         } catch (err) {
-            setSubmitError(
-                err instanceof Error
-                    ? err.message
-                    : 'Erro inesperado. Tente novamente ou fale com nosso suporte.'
-            )
-        } finally {
-            setLoading(false)
+            if (mountedRef.current) {
+                setSubmitError(
+                    err instanceof Error
+                        ? err.message
+                        : 'Erro inesperado. Tente novamente ou fale com nosso suporte.'
+                )
+                setLoading(false)
+            }
         }
     }
 
@@ -160,6 +171,20 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
                                 {errors.email && <p className="field-error">{errors.email}</p>}
                             </div>
 
+                            <div className="lead-form-group">
+                                <label htmlFor="lead-taxId">CPF ou CNPJ</label>
+                                <input
+                                    id="lead-taxId"
+                                    type="text"
+                                    inputMode="numeric"
+                                    placeholder="000.000.000-00 ou CNPJ"
+                                    value={formData.taxId}
+                                    onChange={(e) => handleTaxIdChange(e.target.value)}
+                                    className={errors.taxId ? 'input-error' : ''}
+                                />
+                                {errors.taxId && <p className="field-error">{errors.taxId}</p>}
+                            </div>
+
                             <div className="lead-terms-group">
                                 <input
                                     id="lead-terms"
@@ -191,7 +216,7 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
                                 className={`lead-submit-btn ${loading ? 'loading' : ''}`}
                                 disabled={!isFormValid || loading}
                             >
-                                Ir para Pagamento
+                                {loading ? 'Aguarde...' : 'Ir para o Pagamento'}
                             </button>
 
                             <p className="lead-secure-note">
@@ -199,7 +224,7 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
                                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                                 </svg>
-                                Checkout seguro via Mercado Pago
+                                Checkout seguro via AbacatePay — PIX ou Cartão
                             </p>
                         </form>
                     </div>
