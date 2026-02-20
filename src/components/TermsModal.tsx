@@ -46,9 +46,14 @@ export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
                             oficial.
                         </li>
                         <li>
+                            <strong>CPF ou CNPJ:</strong> Necessário para emissão de nota fiscal e
+                            processamento seguro do pagamento junto ao gateway Asaas, em conformidade
+                            com a legislação fiscal brasileira.
+                        </li>
+                        <li>
                             <strong>Dados de Pagamento:</strong> Processados de forma criptografada
-                            diretamente pelo nosso gateway de pagamento parceiro. Não armazenamos números
-                            completos de cartão de crédito.
+                            diretamente pelo nosso gateway de pagamento parceiro (Asaas). Não armazenamos
+                            números completos de cartão de crédito.
                         </li>
                     </ul>
 

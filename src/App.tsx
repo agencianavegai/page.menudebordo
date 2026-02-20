@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import DiagnosticQuiz from './components/DiagnosticQuiz'
@@ -15,6 +16,20 @@ import CheckoutError from './pages/CheckoutError'
 import CheckoutPending from './pages/CheckoutPending'
 
 function LandingPage() {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // Detect return from Asaas checkout
+    const checkoutComplete = sessionStorage.getItem('checkout_complete')
+    if (checkoutComplete) {
+      sessionStorage.removeItem('checkout_complete')
+      sessionStorage.removeItem('checkout_init_point')
+      // Navigate to the success/return page (unpaid/trial by default)
+      // The webhook will update the DB; the success page shows both paths
+      navigate('/checkout/success', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <div className="app">
       <Navbar />

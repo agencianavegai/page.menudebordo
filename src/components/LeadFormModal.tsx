@@ -96,8 +96,10 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
             if (fnError) throw new Error(fnError.message)
             if (!checkoutData?.init_point) throw new Error('URL de pagamento não recebida.')
 
-            // 3. Save init_point for retry flow, then redirect to Asaas checkout
+            // 3. Save checkout data for return flow, then redirect to Asaas checkout
             sessionStorage.setItem('checkout_init_point', checkoutData.init_point)
+            sessionStorage.setItem('checkout_lead_id', newLeadId)
+            sessionStorage.setItem('checkout_complete', 'true')
             window.location.href = checkoutData.init_point
 
         } catch (err) {
@@ -169,6 +171,7 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
                                     }
                                     className={errors.email ? 'input-error' : ''}
                                 />
+                                <p className="field-hint">📧 Use o mesmo e-mail que será usado para criar sua conta no sistema.</p>
                                 {errors.email && <p className="field-error">{errors.email}</p>}
                             </div>
 
@@ -183,6 +186,7 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
                                     onChange={(e) => handleTaxIdChange(e.target.value)}
                                     className={errors.taxId ? 'input-error' : ''}
                                 />
+                                <p className="field-hint">🔒 Necessário para emissão de nota fiscal e processamento seguro do pagamento via Asaas.</p>
                                 {errors.taxId && <p className="field-error">{errors.taxId}</p>}
                             </div>
 
