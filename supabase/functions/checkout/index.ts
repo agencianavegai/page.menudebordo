@@ -136,7 +136,7 @@ Deno.serve(async (req: Request) => {
                 const errText = await createCustomerResp.text();
                 console.error("Asaas create customer error:", errText);
                 return new Response(
-                    JSON.stringify({ error: "Erro ao criar cliente no gateway." }),
+                    JSON.stringify({ error: "Erro ao criar cliente no gateway.", details: errText }),
                     { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
                 );
             }
@@ -147,6 +147,7 @@ Deno.serve(async (req: Request) => {
         }
 
         // ── STEP 2: Create subscription ────────────────────────────────────────
+        const siteUrl = Deno.env.get("SITE_URL") || "https://menudebordonavegai.vercel.app";
         const subscriptionResp = await fetch(`${asaasApiUrl}/subscriptions`, {
             method: "POST",
             headers: asaasHeaders,
@@ -158,6 +159,9 @@ Deno.serve(async (req: Request) => {
                 cycle: "MONTHLY",
                 description: `Menu de Bordo — ${plan.name}`,
                 externalReference: lead_id, // CRITICAL: used by webhook to find the lead
+                callback: {
+                    successUrl: `${siteUrl}/checkout/success`,
+                },
             }),
         });
 
@@ -165,7 +169,7 @@ Deno.serve(async (req: Request) => {
             const errText = await subscriptionResp.text();
             console.error("Asaas create subscription error:", errText);
             return new Response(
-                JSON.stringify({ error: "Erro ao criar assinatura no gateway." }),
+                JSON.stringify({ error: "Erro ao criar assinatura no gateway.", details: errText }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
