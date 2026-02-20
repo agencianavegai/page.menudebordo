@@ -28,17 +28,20 @@ interface CheckoutRequest {
 const PLANS: Record<string, { name: string; price: number; description: string }> = {
     basic: {
         name: "Cardápio Digital",
-        price: 4990,
-        description: "Plano Mensal — Cardápio Digital com gestão de pedidos via WhatsApp",
+        price: 49.90,
+        description: "Assinatura Mensal — Cardápio Digital com gestão de pedidos via WhatsApp",
     },
     pro: {
         name: "Gestão PRO",
-        price: 10000,
-        description: "Plano Mensal — Gestão PRO com painel Kanban e notificações automáticas",
+        price: 100.00,
+        description: "Assinatura Mensal — Gestão PRO com painel Kanban e notificações automáticas",
     },
 };
 
-const ABACATE_API = "https://api.abacatepay.com/v1";
+function getNextDueDate(): string {
+    const d = new Date();
+    return d.toISOString().split("T")[0]; // YYYY-MM-DD (today = charge immediately)
+}
 
 Deno.serve(async (req: Request) => {
     const origin = req.headers.get("origin");
@@ -46,6 +49,13 @@ Deno.serve(async (req: Request) => {
 
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
+    }
+
+    if (req.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Method not allowed" }), {
+            status: 405,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
     }
 
     try {
@@ -67,94 +77,155 @@ Deno.serve(async (req: Request) => {
             );
         }
 
-        const abacateToken = Deno.env.get("ABACATEPAY_TOKEN");
-        if (!abacateToken) {
+        const asaasApiUrl = Deno.env.get("ASAAS_API_URL");
+        const asaasApiKey = Deno.env.get("ASAAS_API_KEY");
+
+        if (!asaasApiUrl || !asaasApiKey) {
             return new Response(
                 JSON.stringify({ error: "Gateway de pagamento não configurado." }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
 
-        const siteUrl = (Deno.env.get("SITE_URL") ?? "https://menudebordonavegai.vercel.app").replace(/\/$/, "");
-
-        const apiHeaders = {
+        const asaasHeaders = {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${abacateToken}`,
+            "access_token": asaasApiKey,
         };
 
         // Normalize taxId (digits only)
         const taxIdDigits = taxId.replace(/\D/g, "");
 
-        // Build billing payload with inline customer
-        const billingBody = {
-            frequency: "MULTIPLE_PAYMENTS",
-            methods: ["PIX", "CARD"],
-            products: [
-                {
-                    externalId: `menu-de-bordo-${plan_id}-${lead_id.slice(0, 8)}`,
-                    name: `Menu de Bordo — ${plan.name}`,
-                    description: plan.description,
-                    quantity: 1,
-                    price: plan.price,
-                },
-            ],
-            returnUrl: `${siteUrl}/checkout/error`,
-            completionUrl: `${siteUrl}/checkout/success`,
-            customer: {
-                name,
-                email,
-                cellphone: whatsapp ?? "",
-                taxId: taxIdDigits,
-            },
-        };
+        // ── STEP 1: Find or create Asaas customer ──────────────────────────────
+        let customerId: string;
 
-        console.log(`Creating billing for lead=${lead_id}, plan=${plan_id}, taxId=${taxIdDigits.slice(0, 3)}***`);
+        const searchResp = await fetch(
+            `${asaasApiUrl}/customers?cpfCnpj=${taxIdDigits}&email=${encodeURIComponent(email)}&limit=1`,
+            { headers: asaasHeaders }
+        );
 
-        const billingResp = await fetch(`${ABACATE_API}/billing/create`, {
-            method: "POST",
-            headers: apiHeaders,
-            body: JSON.stringify(billingBody),
-        });
-
-        const billingText = await billingResp.text();
-        console.log(`AbacatePay billing response [${billingResp.status}]:`, billingText);
-
-        if (!billingResp.ok) {
+        if (!searchResp.ok) {
+            const errText = await searchResp.text();
+            console.error("Asaas customer search error:", errText);
             return new Response(
-                JSON.stringify({ error: "Erro ao criar cobrança no gateway de pagamento." }),
+                JSON.stringify({ error: "Erro ao buscar cliente no gateway." }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
 
-        const billingData = JSON.parse(billingText);
-        const billing = billingData?.data;
-        const paymentUrl = billing?.url;
+        const searchData = await searchResp.json();
+        const existingCustomer = searchData?.data?.[0];
 
-        if (!paymentUrl) {
-            console.error("No payment URL in billing response:", billingText);
+        if (existingCustomer?.id) {
+            customerId = existingCustomer.id;
+            console.log(`Existing Asaas customer found: ${customerId}`);
+        } else {
+            // Create new customer
+            const createCustomerResp = await fetch(`${asaasApiUrl}/customers`, {
+                method: "POST",
+                headers: asaasHeaders,
+                body: JSON.stringify({
+                    name,
+                    email,
+                    cpfCnpj: taxIdDigits,
+                    mobilePhone: whatsapp ? whatsapp.replace(/\D/g, "") : undefined,
+                    notificationDisabled: false,
+                }),
+            });
+
+            if (!createCustomerResp.ok) {
+                const errText = await createCustomerResp.text();
+                console.error("Asaas create customer error:", errText);
+                return new Response(
+                    JSON.stringify({ error: "Erro ao criar cliente no gateway." }),
+                    { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+            }
+
+            const newCustomer = await createCustomerResp.json();
+            customerId = newCustomer.id;
+            console.log(`New Asaas customer created: ${customerId}`);
+        }
+
+        // ── STEP 2: Create subscription ────────────────────────────────────────
+        const subscriptionResp = await fetch(`${asaasApiUrl}/subscriptions`, {
+            method: "POST",
+            headers: asaasHeaders,
+            body: JSON.stringify({
+                customer: customerId,
+                billingType: "UNDEFINED", // Lets the payer choose PIX, Boleto, or Card
+                value: plan.price,
+                nextDueDate: getNextDueDate(),
+                cycle: "MONTHLY",
+                description: `Menu de Bordo — ${plan.name}`,
+                externalReference: lead_id, // CRITICAL: used by webhook to find the lead
+            }),
+        });
+
+        if (!subscriptionResp.ok) {
+            const errText = await subscriptionResp.text();
+            console.error("Asaas create subscription error:", errText);
+            return new Response(
+                JSON.stringify({ error: "Erro ao criar assinatura no gateway." }),
+                { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        const subscriptionData = await subscriptionResp.json();
+        const subscriptionId: string = subscriptionData.id;
+        console.log(`Subscription created: ${subscriptionId}`);
+
+        // ── STEP 3: Get invoice URL ───────────────────────────────────────────
+        // The subscription creation response may contain the payment link directly,
+        // but we use the robust strategy: fetch the first PENDING payment.
+        let invoiceUrl: string | undefined = subscriptionData?.paymentLink;
+
+        if (!invoiceUrl) {
+            const paymentsResp = await fetch(
+                `${asaasApiUrl}/subscriptions/${subscriptionId}/payments?status=PENDING&limit=1`,
+                { headers: asaasHeaders }
+            );
+
+            if (paymentsResp.ok) {
+                const paymentsData = await paymentsResp.json();
+                const firstPayment = paymentsData?.data?.[0];
+
+                // Prefer invoiceUrl (Asaas hosted page), fallback to bankSlipUrl, then billingLink
+                invoiceUrl = firstPayment?.invoiceUrl ?? firstPayment?.bankSlipUrl ?? firstPayment?.billingLink;
+                console.log(`Invoice URL from payment: ${invoiceUrl}`);
+            } else {
+                const errText = await paymentsResp.text();
+                console.error("Error fetching subscription payments:", errText);
+            }
+        }
+
+        if (!invoiceUrl) {
+            console.error("No invoiceUrl found in subscription or payments response.");
             return new Response(
                 JSON.stringify({ error: "URL de pagamento não retornada pelo gateway." }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
 
-        // Save billing ID to Supabase
+        // ── STEP 4: Update lead in Supabase ───────────────────────────────────
         const supabase = createClient(
-            Deno.env.get("SUPABASE_URL")!,
-            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+            Deno.env.get("MAIN_SUPABASE_URL")!,
+            Deno.env.get("MAIN_SUPABASE_SERVICE_ROLE_KEY")!
         );
 
         const { error: dbError } = await supabase
             .from("leads")
-            .update({ mp_preference_id: billing.id })
+            .update({
+                asaas_customer_id: customerId,
+                asaas_subscription_id: subscriptionId,
+            })
             .eq("id", lead_id);
 
         if (dbError) console.error("DB Update Error:", dbError);
 
-        console.log(`Billing created: id=${billing.id}, url=${paymentUrl}`);
+        console.log(`Checkout ready: lead=${lead_id}, customer=${customerId}, subscription=${subscriptionId}`);
 
         return new Response(
-            JSON.stringify({ init_point: paymentUrl, billing_id: billing.id }),
+            JSON.stringify({ init_point: invoiceUrl, subscription_id: subscriptionId }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
 

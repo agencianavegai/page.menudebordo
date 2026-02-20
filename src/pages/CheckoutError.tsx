@@ -3,7 +3,7 @@ import './Checkout.css'
 
 export default function CheckoutError() {
     const handleRetry = () => {
-        const savedInitPoint = sessionStorage.getItem('mp_init_point')
+        const savedInitPoint = sessionStorage.getItem('checkout_init_point')
         if (savedInitPoint) {
             window.location.href = savedInitPoint
         } else {

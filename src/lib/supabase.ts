@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://ctxhcznhmjgbkprieeno.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0eGhjem5obWpnYmtwcmllZW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExMjI5MTIsImV4cCI6MjA4NjY5ODkxMn0.6dD_ULwerUgvhY6-hwi83QOXJ9uzmw1fcXXiQZ0AGq4'
+// Pointing to the main Menu de Bordo Supabase project
+// so leads land in the same DB as restaurants and users
+const supabaseUrl = 'https://wgomxbyklaunmamjaeko.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indnb214YnlrbGF1bm1hbWphZWtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0OTM0NDgsImV4cCI6MjA4NjA2OTQ0OH0.0Vc9qDJxVlPkk5AfB9BYpH5RZ05PXGwynt60bdvu23g'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)

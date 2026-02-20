@@ -1,13 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// AbacatePay Webhook Handler
-// Docs: https://docs.abacatepay.com/pages/webhooks
-// Event: billing.paid → update lead status to 'active'
+// Asaas Webhook Handler
+// Docs: https://docs.asaas.com/reference/webhooks
+// Events: PAYMENT_CONFIRMED, PAYMENT_RECEIVED → update lead status to 'paid'
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, content-type, x-webhook-secret",
+    "Access-Control-Allow-Headers": "authorization, content-type, asaas-access-token",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -24,11 +24,12 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-        // Validate webhook secret
-        const webhookSecret = Deno.env.get("ABACATEPAY_WEBHOOK_SECRET");
-        const incomingSecret = req.headers.get("x-webhook-secret");
-        if (webhookSecret && incomingSecret !== webhookSecret) {
-            console.warn("Invalid webhook secret received.");
+        // ── Security: validate webhook token ──────────────────────────────────
+        const webhookToken = Deno.env.get("ASAAS_WEBHOOK_TOKEN");
+        const incomingToken = req.headers.get("asaas-access-token");
+
+        if (webhookToken && incomingToken !== webhookToken) {
+            console.warn("Asaas webhook: invalid token received.");
             return new Response(JSON.stringify({ error: "Unauthorized" }), {
                 status: 401,
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -36,64 +37,82 @@ Deno.serve(async (req: Request) => {
         }
 
         const body = await req.json();
-        const { event, data } = body;
+        const { event, payment } = body;
 
-        console.log(`AbacatePay webhook received: event=${event}`);
+        console.log(`Asaas webhook received: event=${event}`);
 
-        // Only handle billing.paid and pix.paid
-        if (event !== "billing.paid" && event !== "pix.paid") {
+        // Only handle confirmed/received payments
+        if (!["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"].includes(event)) {
             return new Response(JSON.stringify({ received: true, skipped: true }), {
                 status: 200,
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
         }
 
-        const billingId: string | undefined = data?.billing?.id ?? data?.id;
-        const leadId: string | undefined = data?.billing?.metadata?.lead_id ?? data?.metadata?.lead_id;
+        if (!payment) {
+            console.warn("Webhook payload missing 'payment' object.");
+            return new Response(JSON.stringify({ received: true, skipped: true }), {
+                status: 200,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+        }
 
-        console.log(`billing.paid: billing_id=${billingId}, lead_id=${leadId}`);
+        // ── Find lead via externalReference ───────────────────────────────────
+        // Asaas puts externalReference on the subscription; the payment may inherit it.
+        let leadId: string | undefined = payment.externalReference ?? undefined;
+
+        // Fallback: if externalReference is absent on the payment, fetch the subscription
+        if (!leadId && payment.subscription) {
+            const asaasApiUrl = Deno.env.get("ASAAS_API_URL");
+            const asaasApiKey = Deno.env.get("ASAAS_API_KEY");
+
+            if (asaasApiUrl && asaasApiKey) {
+                const subResp = await fetch(`${asaasApiUrl}/subscriptions/${payment.subscription}`, {
+                    headers: { "access_token": asaasApiKey, "Content-Type": "application/json" },
+                });
+
+                if (subResp.ok) {
+                    const subData = await subResp.json();
+                    leadId = subData.externalReference ?? undefined;
+                    console.log(`Got externalReference from subscription: ${leadId}`);
+                } else {
+                    console.error("Failed to fetch subscription:", await subResp.text());
+                }
+            }
+        }
+
+        if (!leadId) {
+            console.warn("Cannot identify lead — no externalReference in payment or subscription.");
+            return new Response(JSON.stringify({ received: true, skipped: true }), {
+                status: 200,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+        }
 
         const supabase = createClient(
             Deno.env.get("SUPABASE_URL")!,
             Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
         );
 
-        // Find lead — prefer metadata lead_id, fallback to mp_preference_id (billing_id)
-        let leadFilter: { column: string; value: string } | null = null;
-
-        if (leadId) {
-            leadFilter = { column: "id", value: leadId };
-        } else if (billingId) {
-            leadFilter = { column: "mp_preference_id", value: billingId };
-        }
-
-        if (!leadFilter) {
-            console.warn("Cannot identify lead — no lead_id or billing_id in webhook payload.");
-            return new Response(JSON.stringify({ received: true, skipped: true }), {
-                status: 200,
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-        }
-
-        // Update lead status to active
+        // ── Update lead status ─────────────────────────────────────────────────
         const { error: dbError } = await supabase
             .from("leads")
-            .update({ status: "active", mp_preference_id: billingId })
-            .eq(leadFilter.column, leadFilter.value);
+            .update({ status: "paid" })
+            .eq("id", leadId);
 
         if (dbError) {
             console.error("DB update error:", dbError);
         } else {
-            console.log(`Lead updated to active: ${leadFilter.value}`);
+            console.log(`Lead ${leadId} updated to 'paid'.`);
         }
 
-        // Send confirmation email via Resend (if configured)
+        // ── Send confirmation email via Resend ─────────────────────────────────
         const resendApiKey = Deno.env.get("RESEND_API_KEY");
         if (resendApiKey) {
             const { data: lead, error: leadError } = await supabase
                 .from("leads")
                 .select("name, email, plan_id")
-                .eq(leadFilter.column, leadFilter.value)
+                .eq("id", leadId)
                 .single();
 
             if (leadError || !lead) {
@@ -125,14 +144,14 @@ Deno.serve(async (req: Request) => {
                                     <p>Seu pagamento foi aprovado e sua assinatura está ativa.</p>
                                     <p><strong>Plano:</strong> ${planLabel}</p>
                                     <div style="text-align: center; margin: 32px 0;">
-                                        <a href="https://menudebordonavegai.vercel.app"
+                                        <a href="https://menudebordo.vercel.app"
                                            style="background: #FF6B00; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px;">
-                                            Acessar o Sistema →
+                                            Criar Senha e Acessar o Sistema →
                                         </a>
                                     </div>
                                     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
                                     <p style="font-size: 13px; color: #6b7280;">
-                                        Dúvidas? Fale com nosso suporte: 
+                                        Dúvidas? Fale com nosso suporte:
                                         <a href="https://wa.me/5598985204721" style="color: #FF6B00;">(98) 98520-4721</a>
                                     </p>
                                 </div>
@@ -151,7 +170,7 @@ Deno.serve(async (req: Request) => {
             console.warn("RESEND_API_KEY not set — skipping confirmation email.");
         }
 
-        return new Response(JSON.stringify({ received: true, lead_status: "active" }), {
+        return new Response(JSON.stringify({ received: true, lead_status: "paid" }), {
             status: 200,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

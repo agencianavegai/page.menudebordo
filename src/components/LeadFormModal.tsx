@@ -96,7 +96,8 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
             if (fnError) throw new Error(fnError.message)
             if (!checkoutData?.init_point) throw new Error('URL de pagamento não recebida.')
 
-            // 3. Redirect to AbacatePay checkout page
+            // 3. Save init_point for retry flow, then redirect to Asaas checkout
+            sessionStorage.setItem('checkout_init_point', checkoutData.init_point)
             window.location.href = checkoutData.init_point
 
         } catch (err) {
@@ -224,7 +225,7 @@ export default function LeadFormModal({ isOpen, onClose, planId }: LeadFormModal
                                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                                 </svg>
-                                Checkout seguro via AbacatePay — PIX ou Cartão
+                                Checkout seguro via Asaas — PIX, Boleto ou Cartão
                             </p>
                         </form>
                     </div>
