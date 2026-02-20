@@ -147,7 +147,6 @@ Deno.serve(async (req: Request) => {
         }
 
         // ── STEP 2: Create subscription ────────────────────────────────────────
-        const siteUrl = Deno.env.get("SITE_URL") || "https://menudebordonavegai.vercel.app";
         const subscriptionResp = await fetch(`${asaasApiUrl}/subscriptions`, {
             method: "POST",
             headers: asaasHeaders,
@@ -159,9 +158,6 @@ Deno.serve(async (req: Request) => {
                 cycle: "MONTHLY",
                 description: `Menu de Bordo — ${plan.name}`,
                 externalReference: lead_id, // CRITICAL: used by webhook to find the lead
-                callback: {
-                    successUrl: `${siteUrl}/checkout/success`,
-                },
             }),
         });
 
