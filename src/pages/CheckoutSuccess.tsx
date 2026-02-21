@@ -20,7 +20,7 @@ export default function CheckoutSuccess() {
                     </div>
 
                     <div className="upsell-premium-card">
-                        <div className="upsell-premium-icon">🚀</div>
+                        <div className="upsell-premium-icon"></div>
                         <div className="upsell-premium-content">
                             <h3>Está sem tempo?</h3>
                             <p>Nossa equipe cadastra o cardápio completo para você e te entrega o sistema pronto para vender. Consulte taxas.</p>

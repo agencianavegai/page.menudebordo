@@ -51,7 +51,7 @@
     transition: all 0.3s ease;
 }
 
-.phone-screen {
+.phone-screen-image-wrapper {
     width: 100%;
     height: 100%;
     background: #fff;
@@ -59,51 +59,29 @@
     overflow: hidden;
     position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.5s ease;
 }
 
-.screen-content {
-    text-align: center;
-    color: white;
-    padding: var(--spacing-lg);
-}
-
-.screen-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto var(--spacing-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.screen-icon svg {
+.screen-image {
     width: 100%;
     height: 100%;
-    stroke: white;
+    object-fit: cover;
+    object-position: top;
 }
 
-@keyframes jump {
+.animate-fade-in {
+    animation: fadeInImage 0.4s ease-out forwards;
+}
 
-    0%,
-    100% {
-        transform: translateY(0);
+@keyframes fadeInImage {
+    from {
+        opacity: 0.5;
+        transform: scale(0.98);
     }
 
-    50% {
-        transform: translateY(-20px);
+    to {
+        opacity: 1;
+        transform: scale(1);
     }
-}
-
-.animate-jump {
-    animation: jump 1s ease-in-out infinite;
-}
-
-.screen-placeholder-text {
-    opacity: 0.8;
-    font-size: 0.875rem;
 }
 
 /* Controls */
@@ -166,6 +144,34 @@
     margin: 0;
 }
 
+/* CTA Button */
+.demo-cta-container {
+    margin-top: var(--spacing-md);
+}
+
+.demo-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-primary);
+    color: white;
+    font-weight: 700;
+    padding: 1rem 2rem;
+    border-radius: var(--radius-full);
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    box-shadow: var(--shadow-sm);
+    width: 100%;
+}
+
+.demo-cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    background: var(--color-primary-dark);
+    color: white;
+}
+
 /* ===== MOBILE ===== */
 @media (max-width: 768px) {
     .demo-section {
@@ -190,21 +196,8 @@
         height: 18px;
     }
 
-    .phone-screen {
+    .phone-screen-image-wrapper {
         border-radius: 22px;
-    }
-
-    .screen-icon {
-        width: 50px;
-        height: 50px;
-    }
-
-    .screen-content h3 {
-        font-size: 0.9rem;
-    }
-
-    .screen-placeholder-text {
-        font-size: 0.75rem;
     }
 
     .demo-controls {
