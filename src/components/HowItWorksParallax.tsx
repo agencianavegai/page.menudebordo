@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform, useMotionValueEvent, type MotionValue 
 import {
   Check, Store, Image, Tag, Layers,
   Link, QrCode, Share2, ShoppingBag,
-  LayoutDashboard, BarChart3, Bell, Printer,
+  LayoutDashboard, BarChart3, Bell, Printer, ZoomIn
 } from 'lucide-react'
 import ImageLightbox from './ImageLightbox'
 import './HowItWorksParallax.css'
@@ -232,6 +232,10 @@ export default function HowItWorksParallax() {
                       className="hiw-device__img hiw-device__img--fade cursor-zoom-in"
                       onClick={() => setLightboxImage(currentStep.images[activeImg])}
                     />
+                    <div className="zoom-hint-badge">
+                      <ZoomIn size={14} />
+                      <span className="zoom-hint-text">Ampliar</span>
+                    </div>
                   </motion.div>
 
                   <div className="hiw-device__dots">
@@ -285,6 +289,10 @@ export default function HowItWorksParallax() {
                   className="hiw-device__img hiw-device__img--fade cursor-zoom-in"
                   onClick={() => setLightboxImage(currentStep.images[activeImg])}
                 />
+                <div className="zoom-hint-badge">
+                  <ZoomIn size={14} />
+                  <span className="zoom-hint-text">Ampliar</span>
+                </div>
               </div>
               <div className="hiw-device__dots">
                 {STEPS.map((_, i) => (

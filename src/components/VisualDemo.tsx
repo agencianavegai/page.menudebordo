@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ZoomIn } from 'lucide-react'
 import ImageLightbox from './ImageLightbox'
 import './VisualDemo.css'
 
@@ -48,6 +49,10 @@ export default function VisualDemo() {
                                     key={activeScreen}
                                     onClick={() => setLightboxImage(SCREENS[activeScreen].image)}
                                 />
+                                <div className="zoom-hint-badge">
+                                    <ZoomIn size={14} />
+                                    <span className="zoom-hint-text">Ampliar</span>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -74,12 +74,56 @@
     }
 }
 
-/* Helper class to add to images that can be clicked */
+/* Helper class to add to elements that can be clicked to zoom */
 .cursor-zoom-in {
     cursor: zoom-in;
-    transition: transform 0.2s ease, filter 0.2s ease;
+    position: relative;
 }
 
-.cursor-zoom-in:hover {
+.cursor-zoom-in img {
+    transition: filter 0.2s ease;
+}
+
+.cursor-zoom-in:hover img {
     filter: brightness(0.85);
+}
+
+.zoom-hint-badge {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(10, 25, 41, 0.85);
+    /* Dark secondary brand color */
+    backdrop-filter: blur(4px);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    pointer-events: none;
+    /* Let clicks pass through to the image wrapper */
+    opacity: 0.85;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cursor-zoom-in:hover .zoom-hint-badge {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+@media (max-width: 480px) {
+    .zoom-hint-text {
+        display: none;
+    }
+
+    .zoom-hint-badge {
+        padding: 8px;
+        /* Make it rounder like a button on very small screens */
+        border-radius: 50%;
+    }
 }
