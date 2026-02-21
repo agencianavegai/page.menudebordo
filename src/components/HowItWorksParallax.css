@@ -281,8 +281,9 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.hiw-device--mobile-desktop {
-  width: 300px;
+.hiw-device--mobile.hiw-device--mobile-desktop {
+  width: 100%;
+  max-width: 360px;
   /* Wider for desktop mode */
   border-radius: 12px;
   padding: 6px;
