@@ -4,7 +4,7 @@ import './FAQSection.css'
 const FAQS = [
     {
         question: 'Preciso comprar computador?',
-        answer: 'Não! O Plano Inicial roda 100% no seu celular. O Plano PRO recomenda um PC ou Tablet para gerenciar os pedidos com mais conforto.'
+        answer: 'Não! Ambos os planos rodam 100% no seu celular. O Plano PRO recomenda um PC ou Tablet para gerenciar os pedidos com mais conforto.'
     },
     {
         question: 'Vocês cobram taxa por pedido?',
@@ -24,7 +24,7 @@ const FAQS = [
     },
     {
         question: 'Como funciona o pagamento?',
-        answer: 'Usamos o Mercado Pago. É uma assinatura mensal (estilo Netflix) que debita no cartão ou gera o PIX todo mês para você não esquecer e o sistema não parar.'
+        answer: 'Usamos o Asaas. É uma assinatura mensal (estilo Netflix) que debita no cartão ou gera o PIX todo mês para você não esquecer e o sistema não parar.'
     }
 ]
 

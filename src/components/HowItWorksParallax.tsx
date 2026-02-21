@@ -5,6 +5,7 @@ import {
   Link, QrCode, Share2, ShoppingBag,
   LayoutDashboard, BarChart3, Bell, Printer,
 } from 'lucide-react'
+import ImageLightbox from './ImageLightbox'
 import './HowItWorksParallax.css'
 
 interface StepData {
@@ -115,6 +116,7 @@ export default function HowItWorksParallax() {
   const isMobile = useIsMobile()
   const [activeStep, setActiveStep] = useState(0)
   const [activeImg, setActiveImg] = useState(0)
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null)
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -227,7 +229,8 @@ export default function HowItWorksParallax() {
                       key={`${activeStep}-${activeImg}`}
                       src={currentStep.images[activeImg]}
                       alt={`${currentStep.title} - tela ${activeImg + 1}`}
-                      className="hiw-device__img hiw-device__img--fade"
+                      className="hiw-device__img hiw-device__img--fade cursor-zoom-in"
+                      onClick={() => setLightboxImage(currentStep.images[activeImg])}
                     />
                   </motion.div>
 
@@ -279,7 +282,8 @@ export default function HowItWorksParallax() {
                   key={`m-${activeStep}-${activeImg}`}
                   src={currentStep.images[activeImg]}
                   alt={`${currentStep.title} - tela ${activeImg + 1}`}
-                  className="hiw-device__img hiw-device__img--fade"
+                  className="hiw-device__img hiw-device__img--fade cursor-zoom-in"
+                  onClick={() => setLightboxImage(currentStep.images[activeImg])}
                 />
               </div>
               <div className="hiw-device__dots">
@@ -318,6 +322,11 @@ export default function HowItWorksParallax() {
           Clique aqui e conquiste o seu teste grátis
         </a>
       </div>
+
+      <ImageLightbox
+        imageUrl={lightboxImage}
+        onClose={() => setLightboxImage(null)}
+      />
     </section>
   )
 }

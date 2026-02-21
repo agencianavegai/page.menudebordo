@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ImageLightbox from './ImageLightbox'
 import './VisualDemo.css'
 
 const SCREENS = [
@@ -24,6 +25,7 @@ const SCREENS = [
 
 export default function VisualDemo() {
     const [activeScreen, setActiveScreen] = useState(0)
+    const [lightboxImage, setLightboxImage] = useState<string | null>(null)
 
     return (
         <section id="demo" className="section demo-section">
@@ -42,8 +44,9 @@ export default function VisualDemo() {
                                 <img
                                     src={SCREENS[activeScreen].image}
                                     alt={SCREENS[activeScreen].title}
-                                    className="screen-image animate-fade-in"
+                                    className="screen-image animate-fade-in cursor-zoom-in"
                                     key={activeScreen}
+                                    onClick={() => setLightboxImage(SCREENS[activeScreen].image)}
                                 />
                             </div>
                         </div>
@@ -78,6 +81,11 @@ export default function VisualDemo() {
                     </div>
                 </div>
             </div>
+
+            <ImageLightbox
+                imageUrl={lightboxImage}
+                onClose={() => setLightboxImage(null)}
+            />
         </section>
     )
 }

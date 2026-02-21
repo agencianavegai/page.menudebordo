@@ -42,7 +42,7 @@ export default function Hero() {
                         Pare de anotar pedidos no papel e perder vendas por demora no WhatsApp.
                     </h1>
                     <p className="hero-subtitle">
-                        Receba pedidos organizados, gerencie tudo em um painel Kanban profissional e notifique seu cliente pelo WhatsApp automaticamente. <em>Sem cartão de crédito. Sem compromisso. Começe HOJE.</em>
+                        Receba pedidos organizados, gerencie tudo em um painel profissional, atualize seu cliente pelo WhatsApp rapidamente e acompanhe o fluxo de caixa do seu negócio. <em>Sem compromisso. Começe HOJE.</em>
                     </p>
                     <div className="hero-badges">
                         <span className="badge">Sem taxas por venda</span>
@@ -71,7 +71,7 @@ export default function Hero() {
                             <span>🍔</span> Pedidos Rápidos
                         </div>
                         <div className="floating-card card-2">
-                            <span>🚀</span> +30% Vendas
+                            <span>🚀</span> +40% Vendas
                         </div>
                         <img
                             src="/images/hero-combo.png"

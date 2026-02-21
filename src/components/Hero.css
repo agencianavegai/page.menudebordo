@@ -189,8 +189,8 @@
     }
 
     .hero-floating-device {
-        width: 120px;
-        bottom: -20px;
-        right: -10px;
+        width: 250px;
+        bottom: -90px;
+        right: 100px;
     }
 }
