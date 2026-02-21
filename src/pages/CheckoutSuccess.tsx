@@ -65,10 +65,10 @@ export default function CheckoutSuccess() {
                         </div>
                         <h3>Teste 7 dias Grátis</h3>
                         <p>
-                            Se você apenas preencheu o formulário e deseja ver se vale a pena, crie sua conta agora com o <strong>mesmo e-mail</strong> e libere 7 dias grátis sem compromisso para experimentar tudo.
+                            Se você ainda esta em dúvida e deseja ver se vale a pena, crie sua conta agora <strong>bônus gratuito</strong> e libere 7 dias grátis sem compromisso para experimentar tudo.
                         </p>
                         <a href="https://menudebordo.vercel.app" className="action-button secondary-action">
-                            Testar Gratuitamente por 7 Dias
+                            Testar Gratuitamente
                         </a>
                     </div>
 
