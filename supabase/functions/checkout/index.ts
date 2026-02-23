@@ -105,9 +105,14 @@ Deno.serve(async (req: Request) => {
 
         if (!searchResp.ok) {
             const errText = await searchResp.text();
-            console.error("Asaas customer search error:", errText);
+            console.error("Asaas customer search error:", searchResp.status, errText);
             return new Response(
-                JSON.stringify({ error: "Erro ao buscar cliente no gateway." }),
+                JSON.stringify({
+                    error: "Erro ao buscar cliente no gateway.",
+                    asaas_status: searchResp.status,
+                    asaas_response: errText,
+                    asaas_url_used: `${asaasApiUrl}/customers?cpfCnpj=...`,
+                }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
